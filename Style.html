@@ -1,0 +1,103 @@
+<style>
+body {
+    font-family: Arial;
+    margin: 0;
+    background: #f8fbff;
+    color: #111;
+}
+
+/* NAV */
+nav {
+    background: #1e66ff;
+    color: white;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* LAYOUT */
+.container {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+}
+
+/* ADMIN PANEL */
+.panel {
+    width: 300px;
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+}
+
+/* INPUTS */
+input {
+    width: 100%;
+    padding: 10px;
+    margin: 6px 0;
+    border: 1px solid #dbe6ff;
+    border-radius: 8px;
+    outline: none;
+}
+
+input:focus {
+    border-color: #1e66ff;
+}
+
+/* BUTTONS */
+button {
+    width: 100%;
+    padding: 10px;
+    background: #1e66ff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    margin-top: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+    background: #0f4fd1;
+}
+
+/* PRODUCTS */
+.products {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.card {
+    background: white;
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.06);
+    transition: 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+}
+
+.card h3 {
+    margin: 5px 0;
+}
+
+/* CART */
+.cart {
+    position: fixed;
+    right: 15px;
+    top: 80px;
+    width: 250px;
+    background: white;
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
+</style>
