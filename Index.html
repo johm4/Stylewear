@@ -1,1 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pro Store</title>
 
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial;
+background:#f5f9ff;
+}
+
+/* NAVBAR */
+nav{
+background:#1e5eff;
+color:white;
+padding:15px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+nav button{
+background:white;
+color:#1e5eff;
+border:none;
+padding:8px 12px;
+margin-left:10px;
+cursor:pointer;
+border-radius:6px;
+}
+
+/* AUTH SECTION */
+#authBox{
+display:flex;
+justify-content:center;
+padding:30px;
+}
+
+.authCard{
+background:white;
+padding:20px;
+border-radius:10px;
+width:300px;
+box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+
+input{
+width:100%;
+padding:10px;
+margin:5px 0;
+border:1px solid #ddd;
+border-radius:6px;
+}
+
+.authCard button{
+width:100%;
+padding:10px;
+background:#1e5eff;
+color:white;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+/* PRODUCTS */
+.container{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:15px;
+padding:20px;
+}
+
+.card{
+background:white;
+padding:10px;
+border-radius:10px;
+box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
+
+.card button{
+width:100%;
+background:#1e5eff;
+color:white;
+border:none;
+padding:8px;
+margin-top:5px;
+border-radius:6px;
+cursor:pointer;
+}
+
+/* CART */
+.cart{
+position:fixed;
+right:-320px;
+top:0;
+width:300px;
+height:100%;
+background:white;
+padding:15px;
+transition:0.3s;
+box-shadow:-2px 0 10px rgba(0,0,0,0.2);
+}
+
+.cart.active{right:0;}
+
+</style>
+</head>
+
+<body>
+
+<!-- NAV -->
+<nav>
+<h2>🔥 Pro Store</h2>
+
+<div>
+<button onclick="toggleAuth()">Login / Sign Up</button>
+<button onclick="toggleCart()">🛒 <span id="count">0</span></button>
+</div>
+</nav>
+
+<!-- AUTH -->
+<div id="authBox" style="display:none;">
+<div class="authCard">
+
+<h3>Login</h3>
+<input id="loginEmail" placeholder="Email">
+<input id="loginPass" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+
+<hr>
+
+<h3>Sign Up</h3>
+<input id="signupEmail" placeholder="Email">
+<input id="signupPass" type="password" placeholder="Password">
+<button onclick="signup()">Create Account</button>
+
+</div>
+</div>
+
+<!-- ADMIN UPLOAD (hidden unless admin) -->
+<div id="adminUpload" style="display:none;padding:20px;">
+<h3>📦 Upload Product (Admin)</h3>
+<input id="name" placeholder="Product name">
+<input id="price" placeholder="Price">
+<button onclick="addProduct()">Upload Product</button>
+</div>
+
+<!-- PRODUCTS -->
+<div class="container" id="products"></div>
+
+<!-- CART -->
+<div class="cart" id="cartBox">
+<h3>Your Cart</h3>
+<div id="cartItems"></div>
+<p>Total: ₦<span id="total"></span></p>
+<button onclick="checkout()">Checkout</button>
+</div>
+
+<script>
+
+/* FIREBASE */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+let cart = [];
+
+/* AUTH UI */
+function toggleAuth(){
+document.getElementById("authBox").style.display =
+document.getElementById("authBox").style.display === "none" ? "block":"none";
+}
+
+/* SIGN UP */
+function signup(){
+auth.createUserWithEmailAndPassword(
+signupEmail.value,
+signupPass.value
+).then(()=>alert("Account created"));
+}
+
+/* LOGIN */
+function login(){
+auth.signInWithEmailAndPassword(
+loginEmail.value,
+loginPass.value
+).then(user=>{
+toggleAuth();
+
+/* simple admin check */
+if(user.user.email === "admin@gmail.com"){
+document.getElementById("adminUpload").style.display="block";
+}
+});
+}
+
+/* ADD PRODUCT */
+function addProduct(){
+db.collection("products").add({
+name:name.value,
+price:parseInt(price.value)
+});
+}
+
+/* LOAD PRODUCTS */
+db.collection("products").onSnapshot(snap=>{
+let box=document.getElementById("products");
+box.innerHTML="";
+
+snap.forEach(doc=>{
+let p=doc.data();
+
+box.innerHTML+=`
+<div class="card">
+<h3>${p.name}</h3>
+<p>₦${p.price}</p>
+<button onclick="addToCart('${p.name}',${p.price})">Add</button>
+</div>
+`;
+});
+});
+
+/* CART */
+function addToCart(name,price){
+cart.push({name,price});
+updateCart();
+}
+
+function updateCart(){
+let box=document.getElementById("cartItems");
+box.innerHTML="";
+let total=0;
+
+cart.forEach(c=>{
+total+=c.price;
+box.innerHTML+=`<p>${c.name} - ₦${c.price}</p>`;
+});
+
+document.getElementById("total").innerText=total;
+document.getElementById("count").innerText=cart.length;
+}
+
+/* CART UI */
+function toggleCart(){
+document.getElementById("cartBox").classList.toggle("active");
+}
+
+/* CHECKOUT */
+function checkout(){
+
+let msg="Order:%0A";
+
+cart.forEach(c=>{
+msg+=c.name+"%0A";
+});
+
+msg+="Total: ₦"+document.getElementById("total").innerText;
+
+db.collection("orders").add({
+items:cart,
+total:document.getElementById("total").innerText,
+time:new Date().toLocaleString()
+});
+
+window.open("https://wa.me/2349036908436?text="+msg);
+
+cart=[];
+updateCart();
+toggleCart();
+}
+
+</script>
+
+</body>
+</html>
